@@ -9,7 +9,7 @@ keras==2.6.0
 pandas==1.1.5
 scikit-learn==1.0.2
 matplotlib==3.4.3
-##Dual-Branch Heterogeneous Graph Module
+## Dual-Branch Heterogeneous Graph Module
 numpy ==1.17.4
 pandas==1.3.5
 scikit-learn==1.0.2
