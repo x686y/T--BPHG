@@ -84,13 +84,13 @@ def TCRDataset_global(cdr3b_map, tra_peptide_map, trb_peptide_map, cdr3b_graph, 
     # Prepare tra_peptide node features
     tra_peptide_x = torch.Tensor()
     for tp_num in tra_peptide_map.values():
-        # 获取 tra_peptide_map 中的实际字符串键
+    
         tp_key = list(tra_peptide_map.keys())[tp_num]
 
-        # print("tra_peptide_graph keys:", tra_peptide_graph.keys())  # 打印 tra_peptide_graph 的键
-        # print("tp_key:", tp_key)  # 打印 tp_key
+        # print("tra_peptide_graph keys:", tra_peptide_graph.keys()) 
+        # print("tp_key:", tp_key) 
 
-        # 假设 tp_key 一定存在
+       
         tra_peptide_feature = np.array(tra_peptide_graph[tp_key])
         tra_peptide_x = torch.cat((tra_peptide_x, torch.Tensor(tra_peptide_feature).unsqueeze(0)), 0)
 
@@ -99,13 +99,13 @@ def TCRDataset_global(cdr3b_map, tra_peptide_map, trb_peptide_map, cdr3b_graph, 
     # Prepare trb_peptide node features
     trb_peptide_x = torch.Tensor()
     for tb_num in trb_peptide_map.values():
-        # 获取 trb_peptide_map 中的实际字符串键
+       
         tb_key = list(trb_peptide_map.keys())[tb_num]
 
-        # print("trb_peptide_graph keys:", trb_peptide_graph.keys())  # 打印 trb_peptide_graph 的键
-        # print("tb_key:", tb_key)  # 打印 tb_key
+        # print("trb_peptide_graph keys:", trb_peptide_graph.keys())  
+        # print("tb_key:", tb_key) 
 
-        # 假设 tb_key 一定存在
+        
         trb_peptide_feature = np.array(trb_peptide_graph[tb_key])
         trb_peptide_x = torch.cat((trb_peptide_x, torch.Tensor(trb_peptide_feature).unsqueeze(0)), 0)
 
@@ -127,13 +127,13 @@ def TCRDataset_global(cdr3b_map, tra_peptide_map, trb_peptide_map, cdr3b_graph, 
 def create_dataset_global():
     if not os.path.exists(root):
         os.makedirs(root)
-    # 在加载或重新生成训练数据集之前，先删除可能已存在的损坏的 pickle 文件
+   
     if os.path.exists(path_pickle_train):
         os.remove(path_pickle_train)
 
-    # train data处理训练数据，以构建TCR双链与肽的边索引。这些边索引将用于图模型的训练，以预测TCR与肽的相互作用。
+   
     train_data = pd.read_csv(train_csv, delimiter=train_delimiter)
-    # 拼接 tra_cdr3 和 trb_cdr3 列
+ 
     train_data['cdr3'] = train_data['A3'].astype(str) + train_data['B3'].astype(str)
     train_cdr3b = list(train_data['cdr3'])
 
@@ -143,7 +143,7 @@ def create_dataset_global():
     train_data['peptidecdr3b'] = train_data['B3'].astype(str) + train_data['peptide'].astype(str)
     train_peptidecdr3b = list(train_data['peptidecdr3b'])
 
-    train_binder = list(train_data['Binding'])#本身表示肽和tcr双链连接的关系
+    train_binder = list(train_data['Binding'])
 
     train_cdr3b_unique_list = list(train_data['cdr3'].unique())
     train_peptidecdr3a_unique_list = list(train_data['peptidecdr3a'].unique())
@@ -187,12 +187,12 @@ def create_dataset_global():
             train_dataset = pickle.load(f1)
         print("train dataset global pickle has loaded")
     print("train dataset global has prepared")
-    # 打印 x_dict 的键值，检查是否包含 cdr3b, tra_peptide, trb_peptide
+    
     print("x_dict keys:", train_dataset.x_dict.keys())
 
     # test data
     test_data = pd.read_csv(test_csv, delimiter=train_delimiter)
-    # 拼接 tra_cdr3 和 trb_cdr3 列
+   
     test_data['cdr3'] = test_data['A3'].astype(str) + test_data['B3'].astype(str)
     test_cdr3b = list(test_data['cdr3'])
 
@@ -246,7 +246,7 @@ def create_dataset_global():
             test_dataset = pickle.load(f2)
         print("test dataset global pickle has loaded")
     print("test dataset global has prepared")
-    # 打印 x_dict 的键值，检查是否包含 cdr3b, tra_peptide, trb_peptide
+  
     print("x_dict keys:", test_dataset.x_dict.keys())
     return train_dataset, test_dataset, train_edge_index_a,train_edge_index_b, test_edge_index_a, test_edge_index_b,train_binder, test_binder
 
@@ -257,7 +257,7 @@ def create_dataset_global_predict():
 
     # test data
     test_data = pd.read_csv(test_csv, delimiter=test_delimiter)
-    # 拼接 tra_cdr3 和 trb_cdr3 列
+  
     test_data['cdr3'] = test_data['A3'].astype(str) + test_data['B3'].astype(str)
     test_cdr3b = list(test_data['cdr3'])
 
