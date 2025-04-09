@@ -19,7 +19,7 @@ nl = int(args.numberlayers)
 nt = args.gnnnet
 
 root_model = args.modeldir
-# model_dir = str(args.secdir) + '_' + str(args.terdir) + '_Graph'#heterotcr模行
+# model_dir = str(args.secdir) + '_' + str(args.terdir) + '_Graph'
 model_dir = str(args.secdir) + '_' + str(args.terdir) + '_SingleGraph'
 model_dir2 = str(args.secdir) + '_' + str(args.terdir)
 save_model_path = os.path.join(root_model, model_dir)
