@@ -29,53 +29,21 @@ def TCRDataset_global(cdr3b_map, tra_peptide_map, trb_peptide_map, cdr3b_graph, 
                       edge_index_tra, edge_index_trb):
     Graphdata = HeteroData()
 
-    # Prepare cdr3b node features
-    # cdr3b_x = torch.Tensor()
-    # for cb_num in cdr3b_map.values():
-    #     if cb_num not in cdr3b_graph:
-    #         raise ValueError(f"Key {cb_num} not found in cdr3b_graph.")
-    #     cdr3b_feature = np.array(cdr3b_graph[cb_num])
-    #     cdr3b_x = torch.cat((cdr3b_x, torch.Tensor(cdr3b_feature).unsqueeze(0)), 0)
-    # Graphdata['cdr3b'].x = cdr3b_x
 
-    # # Prepare tra_peptide node features
-    # tra_peptide_x = torch.Tensor()
-    # for tp_num in tra_peptide_map.values():
-    #     tra_peptide_feature = np.array(tra_peptide_graph[tp_num])
-    #     tra_peptide_x = torch.cat((tra_peptide_x, torch.Tensor(tra_peptide_feature).unsqueeze(0)), 0)
-    # Graphdata['tra_peptide'].x = tra_peptide_x
-    #
-    # # Prepare trb_peptide node features
-    # trb_peptide_x = torch.Tensor()
-    # for tb_num in trb_peptide_map.values():
-    #     trb_peptide_feature = np.array(trb_peptide_graph[tb_num])
-    #     trb_peptide_x = torch.cat((trb_peptide_x, torch.Tensor(trb_peptide_feature).unsqueeze(0)), 0)
-    # Graphdata['trb_peptide'].x = trb_peptide_x
-    #
-    # # Connect cdr3b and tra_peptide nodes
-    # Graphdata['cdr3b', 'binds_to', 'tra_peptide'].edge_index = edge_index_tra
-    #
-    # # Connect cdr3b and trb_peptide nodes
-    # Graphdata['cdr3b', 'binds_to', 'trb_peptide'].edge_index = edge_index_trb
-    #
-    # # Ensure the graph is undirected
-    # Graphdata = ToUndirected()(Graphdata)
-    #
-    # return Graphdata
 
 
     # Prepare cdr3b node features
     cdr3b_x = torch.Tensor()
     for cb_num in cdr3b_map.values():
-        # 获取 cdr3b_map 中的实际字符串键
+       
         cb_key = list(cdr3b_map.keys())[cb_num]
 
-        # 检查 cb_key 是否在 cdr3b_graph 中
+        
         if cb_key not in cdr3b_graph:
             print(f"Key {cb_key} not found in cdr3b_graph.")
-            continue  # 或者可以选择 raise 错误，或者其他处理方式
+            continue 
 
-        # 假设 cb_key 一定存在
+       
         cdr3b_feature = np.array(cdr3b_graph[cb_key])
         cdr3b_x = torch.cat((cdr3b_x, torch.Tensor(cdr3b_feature).unsqueeze(0)), 0)
 
