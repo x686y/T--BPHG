@@ -31,31 +31,7 @@ test_precision_metric = torchmetrics.Precision(num_classes=2, average='macro', m
 test_recall_metric = torchmetrics.Recall(num_classes=2, average='macro', multiclass=True).to(device)
 test_f1_metric = torchmetrics.F1(num_classes=2, average='macro', multiclass=True).to(device)
 
-# # 假设 y_test 是你的测试标签数据
-# y_test = torch.tensor(y_test)  # 将 y_test 转为 PyTorch 张量
-#
-# # 计算类别权重
-# class_weights = compute_class_weight(
-#     class_weight='balanced',  # 自动计算平衡权重
-#     classes=np.unique(y_test.numpy()),  # 获取标签的唯一类别
-#     y=y_test.numpy()  # 使用 y_test 来计算类别权重
-# )
 
-# 将类别权重转换为 PyTorch 张量，并移到设备上
-# class_weights_tensor = torch.tensor(class_weights, dtype=torch.float32).to(device)
-# def weighted_binary_crossentropy(y_true, y_pred):
-#     # 计算标准的二元交叉熵损失 (reduction='none' 计算每个样本的损失)
-#     bce = torch.nn.BCELoss(reduction='none')
-#     loss = bce(y_pred, y_true.float())  # 将标签转换为浮动类型以与预测值兼容
-#
-#     # 使用 y_true 作为索引来获取类别权重
-#     weights = class_weights_tensor[y_true.long()]  # 获取对应类别的权重
-#
-#     # 每个样本的损失乘以对应的权重
-#     weighted_loss = loss * weights
-#
-#     # 返回加权损失的平均值
-#     return weighted_loss.mean()
 
 def predictAB(model):
     # print('Testing on {} samples...'.format(len(data_test['cdr3b', 'binds_to', 'tra_peptide'].edge_index[0])))
@@ -66,20 +42,17 @@ def predictAB(model):
     with torch.no_grad():
         outa_test, outb_test= model(data_test.x_dict, data_test.edge_index_dict,
                                                            test_edge_index_a, test_edge_index_b)
-        # 使用 torch.stack 合并输出，然后在最后一个维度上应用 softmax
+       
         out_test_tra_b = torch.stack([outa_test, outb_test], dim=-1)
-        softmax_out_test_tra_b  = torch.softmax(out_test_tra_b, dim=-1)  # 指定在最后一个维度上进行 softmax
-
-        # 提取两个输出的权重
+        softmax_out_test_tra_b  = torch.softmax(out_test_tra_b, dim=-1)  
         test_weight_tra = softmax_out_test_tra_b[..., 0]
         test_weight_trb = softmax_out_test_tra_b[..., 1]
-        # 添加打印语句检查形状
+       
         print(f"Shape of test_weight_tra: {test_weight_tra.shape}")
         print(f"Shape of test_weight_trb: {test_weight_trb.shape}")
-        out_test = (outa_test + outb_test) / 2  # 合并测试输出
-        # 去掉最后一个维度
+        out_test = (outa_test + outb_test) / 2 
         out_test =  out_test .squeeze(-1)
-        # 在这里加入 Sigmoid
+       
         out_test = torch.sigmoid(out_test)
         test_loss = loss_fn(out_test, torch.tensor(y_test).float().to(device))
         # test_loss = weighted_binary_crossentropy(torch.tensor(y_test).to(device), out_test)
@@ -105,7 +78,7 @@ if __name__ == "__main__":
 
     for root, dirs, files in os.walk(val_model_path):
         for file in files:
-            if file.startswith("max"):#有些文件只有min开头
+            if file.startswith("max"):
                 PATH = os.path.join(val_model_path, file)
 
                 model.load_state_dict(torch.load(PATH))
@@ -131,8 +104,8 @@ if __name__ == "__main__":
                     'true_label': test_data['Binding'],
                     'probability': test_prob.cpu(),
                     # 'pre_lable': test_labels.cpu(),
-                    'weights_tra': test_weight_tra.cpu().squeeze(),  # 将二维张量展平成一维
-                    'weights_trb': test_weight_trb.cpu().squeeze()  # 将二维张量展平成一维
+                    'weights_tra': test_weight_tra.cpu().squeeze(), 
+                    'weights_trb': test_weight_trb.cpu().squeeze() 
 
                 })
                 # df.to_csv(os.path.join(root2, "Base_nettcrfullHetero_pred_fold4.tsv"), header=True, sep='\t', index=False)
