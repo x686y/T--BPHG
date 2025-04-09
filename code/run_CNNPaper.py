@@ -21,52 +21,48 @@ import pickle
 from configPaper import *
 
 def seed_tensorflow(seed=42):
-    random.seed(seed)  # 设置 Python 标准库中的 random 模块的随机种子
-    os.environ['PYTHONHASHSEED'] = str(seed)  # 设置 Python 的 hash 函数的随机种子，这有助于确保字典等基于哈希的数据结构的行为是可重复的
-    np.random.seed(seed)  # 设置 NumPy 库的随机种子
-    tf.random.set_seed(seed)  # 设置 TensorFlow 的随机种子
+    random.seed(seed) 
+    os.environ['PYTHONHASHSEED'] = str(seed)  
+    np.random.seed(seed) 
+    tf.random.set_seed(seed) 
 
 
-seed_tensorflow()  # 调用函数，设置随机种子为 42（这是一个常用的默认值）
-
-# config配置项目中涉及的各种路径和参数
-# 参数转换
-epochs = int(args.epochs)  # 从某个参数集合（args）中获取名为epochs的参数，并将其转换为整数
+seed_tensorflow()  
+epochs = int(args.epochs)  
 batchsize = int(args.batchsize)
 lr = float(args.cnnlearningrate)
 
-# 路径构建
-root = os.path.join(args.pridir, args.secdir, args.terdir)  # ：使用os.path.join函数将args中的三个参数组合成一个完整的路径，代表了数据或模型存储的根目录。
-train_csv = os.path.join(root, 'train_data.tsv')  # 分别根据root路径和文件名'train.tsv'、'test.tsv'生成训练集和测试集的CSV文件路径。
+
+root = os.path.join(args.pridir, args.secdir, args.terdir)  
+train_csv = os.path.join(root, 'train_data.tsv') 
 test_csv = os.path.join(root, 'test_data.tsv')
 
-root_model = args.modeldir  # args中获取模型存储的根目录路径
+root_model = args.modeldir 
 model_dir = str(args.secdir) + '_' + str(
-    args.terdir) + '_PaperCNN'  # 根据args中的secdir和terdir参数，以及字符串'_CNN'，生成一个用于标识模型存储位置的目录名。这个目录名将用于在root_model指定的根目录下创建一个子目录来保存模型。
+    args.terdir) + '_PaperCNN'  
 model_dir2 = str(args.secdir) + '_' + str(args.terdir)
-save_model_path = os.path.join(root_model, model_dir)  # 将root_model和model_dir组合成一个完整的路径，将用于保存训练好的模型。
-root_history = args.hisdir  # 从args中获取用于保存训练历史记录（如损失和准确率）的根目录路径
+save_model_path = os.path.join(root_model, model_dir)  
+root_history = args.hisdir  
 
-# 文件路径设置
-train_path_pickle_cdr3 = os.path.join(root,'PaperCNN_feature_cdr3_train.pickle')  # 分别设置了训练数据中CDR3特征和肽段特征的 pickle 文件路径。这些文件可能包含了通过某种预处理（如使用卷积神经网络CNN提取的特征）得到的特征数据，以 pickle 格式存储。pickle 是 Python 的一种序列化对象结构的方式，可以方便地将对象保存到文件中，并在需要时重新加载。
+
+train_path_pickle_cdr3 = os.path.join(root,'PaperCNN_feature_cdr3_train.pickle')  
 train_path_pickle_peptide = os.path.join(root, 'PaperCNN_feature_peptide_train.pickle')
 test_path_pickle_cdr3 = os.path.join(root, 'PaperCNN_feature_cdr3_test.pickle')
 test_path_pickle_peptide = os.path.join(root, 'PaperCNN_feature_peptide_test.pickle')
 
-# Load data加载数据
+# Load data
 print('Loading the train data..')
 train_data = pd.read_csv(train_csv,
-                         delimiter='\t')  # 从 CSV 文件中加载训练数据和测试数据，train_csv 和 test_csv 变量分别存储了训练集和测试集的 CSV 文件路径，这些路径是在之前的代码中通过组合不同的目录和文件名得到的。delimiter='\t' 参数指定了 CSV 文件中字段之间的分隔符是制表符（\t），加载的数据分别存储在 train_data 和 test_data 变量中，这两个变量现在包含了 DataFrame 对象，DataFrame 是 pandas 库中用于存储和操作结构化数据的主要数据结构。
-print(f"Length of train_data: {len(train_data)}")  # 打印训练数据的长度
-
+                         delimiter='\t')  
+print(f"Length of train_data: {len(train_data)}") 
 print('Loading the test data..')
 test_data = pd.read_csv(test_csv, delimiter='\t')
-print(f"Length of test_data: {len(test_data)}")  # 打印测试数据的长度
+print(f"Length of test_data: {len(test_data)}")  
 print(train_data.columns)
 print(train_data.info())
 
 def enc_list_bl_max_len(aa_seqs, blosum,
-                        max_seq_len):  # 对一组氨基酸序列（aa_seqs）进行BLOSUM编码，并将编码后的序列填充到统一的最大长度（max_seq_len），blosum: 一个字典，键是氨基酸（AA）的缩写，值是该氨基酸对应的BLOSUM编码。BLOSUM编码是一种基于氨基酸替换频率的矩阵，常用于蛋白质序列的比对和分类。
+                        max_seq_len):  
     """
     @description:
                 blosum encoding of a list of amino acid sequences with padding to a max length
@@ -81,36 +77,34 @@ def enc_list_bl_max_len(aa_seqs, blosum,
     ----------
     """
     # encode sequences
-    sequences = []  # 初始化一个空列表，用于存储每个氨基酸序列转换后的编码
-    for seq in aa_seqs:  # 遍历给定的氨基酸序列列表
+    sequences = []  
+    for seq in aa_seqs: 
         e_seq = np.zeros((len(seq), len(
-            blosum["A"])))  # 对于每个序列，初始化一个全零矩阵e_seq，其行数为序列长度，列数为BLOSUM矩阵中任一氨基酸向量的长度（这里以"A"为例，假设所有氨基酸的向量长度相同）
-        count = 0  # 初始化计数器，用于跟踪当前处理的氨基酸在序列中的位置
-        for aa in seq:  # 遍历当前序列中的每个氨基酸
-            if aa in blosum:  # 检查当前氨基酸是否在BLOSUM字典（或类似的数据结构）中
-                e_seq[count] = blosum[aa]  # 如果在，则将BLOSUM中对应的向量赋值给e_seq的当前行
-                count += 1  # 计数器增加，以处理下一个氨基酸
-            else:  # 如果当前氨基酸不在BLOSUM中
-                print(seq)  # 打印出有问题的序列
+            blosum["A"])))  
+        count = 0  
+        for aa in seq: 
+            if aa in blosum:  
+                e_seq[count] = blosum[aa]  
+                count += 1  
+            else:  
+                print(seq)  
                 sys.stderr.write(
-                    "Unknown amino acid in peptides: " + aa + ", encoding aborted!\n")  # 向标准错误输出错误信息，并指出哪个氨基酸未知，然后终止程序
-                sys.exit(2)  # 退出程序，并返回状态码2，表示由于未知氨基酸而终止
-        sequences.append(e_seq)  # 将处理好的编码矩阵e_seq添加到sequences列表中
+                    "Unknown amino acid in peptides: " + aa + ", encoding aborted!\n")  
+                sys.exit(2)  
+        sequences.append(e_seq)  
 
-    # pad sequences填充序列
-    n_seqs = len(aa_seqs)  # 计算序列总数，用于后续的数组初始化
-    n_features = sequences[0].shape[1]  # 提取一个序列编码矩阵的列数（即特征数），假设所有序列的编码长度相同
-    enc_aa_seq = np.zeros((n_seqs, max_seq_len, n_features))  # 初始化一个全零的三维数组，用于存储所有序列的编码，包括必要的填充
-    for i in range(0, n_seqs):  # 遍历每个序列的编码
+    # pad sequences
+    n_seqs = len(aa_seqs) 
+    n_features = sequences[0].shape[1]  
+    enc_aa_seq = np.zeros((n_seqs, max_seq_len, n_features))  
+    for i in range(0, n_seqs):  
         enc_aa_seq[i, :sequences[i].shape[0], :n_features] = sequences[
-            i]  # 将每个序列的编码复制到enc_aa_seq的相应位置，对于较短的序列，其余部分保持为零（即填充）
-    return enc_aa_seq  # 返回填充后的编码数组，数组包含所有序列的编码，每个序列都被填充到了统一的最大长度max_seq_len，并且每个氨基酸都被转换为了对应的BLOSUM编码向量
+            i]  
+    return enc_aa_seq  
 
-
-# 一个预定义的BLOSUM50矩阵，用于将氨基酸转换为特征向量，blosum50_20aa 是一个字典，它包含了20种标准氨基酸在BLOSUM50替换矩阵中的得分向量。每一行代码都定义了一个键（氨基酸的单字母缩写）和一个值（一个NumPy数组，表示该氨基酸在BLOSUM50矩阵中的得分向量）。这个得分向量是一个长度为20的数组，因为BLOSUM矩阵是一个20x20的矩阵，每种氨基酸都对应一行和一列。数组中的每个元素都表示当前氨基酸（键）与其他氨基酸（按照字典顺序排列）之间的替换得分。
 blosum50_20aa = {
     'A': np.array((5, -2, -1, -2, -1, -1, -1, 0, -2, -1, -2, -1, -1, -3, -1, 1, 0, -3, -2, 0)),
-    # A与A的替换得分为5，A与R的替换得分为-2，依此类推
+   
     'R': np.array((-2, 7, -1, -2, -4, 1, 0, -3, 0, -4, -3, 3, -2, -3, -3, -1, -1, -3, -1, -3)),
     'N': np.array((-1, -1, 7, 2, -2, 0, 0, 0, 1, -3, -4, 0, -2, -4, -2, 1, 0, -4, -2, -3)),
     'D': np.array((-2, -2, 2, 8, -4, 0, 2, -1, -1, -4, -4, -1, -4, -5, -1, 0, -1, -5, -3, -4)),
@@ -132,7 +126,7 @@ blosum50_20aa = {
     'V': np.array((0, -3, -3, -4, -1, -3, -3, -4, -4, 4, 1, -3, 1, -1, -3, -2, 0, -3, -1, 5))
 }
 
-# Feature encoding对训练和测试数据集中的TCRB CDR3序列和肽序列进行特征编码，并将它们以及对应的结合信息（Binding）准备为机器学习模型可以处理的格式
+# Feature encoding
 print('Encoding the train data..')
 tcrB_train = enc_list_bl_max_len(train_data.B3, blosum50_20aa, 23)
 
@@ -148,9 +142,8 @@ tcrB_train = enc_list_bl_max_len(train_data.B3, blosum50_20aa, 23)
 # print('-----------------------------')
 # print(tcr_train.shape)
 # print('-----------------------------')
-pep_train = enc_list_bl_max_len(train_data.peptide, blosum50_20aa,15)  # 类似地，对train_data.peptide中的肽序列进行编码，最大长度为15
-y_train = np.array(train_data.Binding)  # 将train_data.Binding（可能是一个列表或数组，包含了与TCRB CDR3和肽序列对应的结合信息）转换为NumPy数组
-
+pep_train = enc_list_bl_max_len(train_data.peptide, blosum50_20aa,15)  
+y_train = np.array(train_data.Binding)  
 print('Encoding the test data..')
 tcrB_test = enc_list_bl_max_len(test_data.B3, blosum50_20aa, 23)
 pep_test = enc_list_bl_max_len(test_data.peptide, blosum50_20aa,15)
@@ -226,10 +219,10 @@ history = model.fit(train_inputs, y_train,
                     epochs=epochs, batch_size=batchsize, verbose=1, callbacks=[early_stop, checkpointer])
 
 
-# Logs of results从一个训练历史对象（通常是由Keras模型训练过程中产生的）中提取关键指标（如损失、准确率、AUC等），并将这些指标以及对应的轮次（epoch）存储到一个Pandas DataFrame中，最后将这个DataFrame保存为一个TSV（制表符分隔值）文件
-history_dict = history.history  # 从history对象中提取所有训练过程中的历史记录，并将其存储在history_dict字典中。history对象是在使用Keras训练模型时，通过model.fit()方法返回的，它包含了训练过程中的损失值、准确率等指标的记录。
-epoch = []  # 初始化空列表epoch用于存储轮次
-loss = history_dict['loss']  # 从history_dict字典中提取关键指标
+# Logs of results
+history_dict = history.history  
+epoch = []  
+loss = history_dict['loss']  
 acc = history_dict['binary_accuracy']
 auc_roc = history_dict['ROCAUC']
 precision = history_dict['Precision']
@@ -242,31 +235,29 @@ val_precision = history_dict['val_Precision']
 val_recall = history_dict['val_Recall']
 val_f1_score = history_dict['val_F1']
 
-for ep in range(len(acc)):  # 遍历了训练准确率的长度（即训练的轮次数）
-    epoch.append(ep + 1)  # 训练过程的第一轮次称为第1轮次，而不是第0轮次。循环中的ep+1就是实现了这个目的，它将循环变量ep（从0开始）加1
+for ep in range(len(acc)):  
+    epoch.append(ep + 1)  
 
 dfhistory = {'epoch': epoch,
     'loss': loss, 'acc': acc, 'auc_roc': auc_roc,
     'precision': precision, 'recall': recall, 'f1_score': f1_score,
     'val_loss': val_loss, 'val_acc': val_acc, 'val_auc_roc': val_auc_roc,
-    'val_precision': val_precision, 'val_recall': val_recall, 'val_f1_score': val_f1_score}  # 创建了一个字典dfhistory，它包含了所有要保存到DataFrame中的列名和对应的数据。列名包括'epoch'、'loss'、'acc'、'auc_roc'、'val_loss'、'val_acc'和'val_auc_roc'
+    'val_precision': val_precision, 'val_recall': val_recall, 'val_f1_score': val_f1_score} 
 df = pd.DataFrame(
-    dfhistory)  # 使用Pandas库的DataFrame构造函数，将dfhistory字典转换为DataFrame对象df。DataFrame是Pandas中用于存储和操作结构化数据的主要数据结构
+    dfhistory) 
 if not os.path.exists(
-        root_history):  # os.path.exists()用于检查root_history路径是否存在，不存在，则创建这个路径。这是为了确保在保存文件之前，目标文件夹已经存在。os.makedirs()用于创建多级目录
+        root_history):  
     os.makedirs(root_history)
 df.to_csv(os.path.join(root_history, "CNN_extra_feature_{}.tsv".format(model_dir2)), header=True, sep='\t',
-          index=False)  # 将DataFramedf保存为一个TSV文件。文件路径是通过将root_history路径和文件名（通过格式化字符串生成，文件名中包含model_dir2变量）组合而成的。header=True表示文件中包含列名作为表头，sep='\t'指定字段分隔符为制表符（Tab），index=False表示不将DataFrame的索引保存到文件中
-
-# get num_epoch从一个Pandas DataFrame (df) 中提取验证集的AUC-ROC值和验证损失，并找出这些指标分别在何时达到最优（即AUC-ROC最大时和验证损失最小时）的轮次
-val_auc_roc = list(df['val_auc_roc'])  # 将DataFrame中'val_auc_roc'列的值转换为列表
-max_auc_index = val_auc_roc.index(max(val_auc_roc))  # 找出验证集AUC-ROC值最大的索引,这个索引位置对应的就是模型在训练过程中达到最大AUC-ROC值的轮次。
-num_epoch = max_auc_index + 1  # 计算达到最大AUC-ROC值的轮次（加1是因为通常轮次从1开始计数）
+          index=False)  
+val_auc_roc = list(df['val_auc_roc']) 
+max_auc_index = val_auc_roc.index(max(val_auc_roc)) 
+num_epoch = max_auc_index + 1  
 print("max auc epoch:", num_epoch)
 
 val_loss = list(df['val_loss'])
-min_val_loss_index = val_loss.index(min(val_loss))  # 找出验证损失最小的索引
-loss_num_epoch = min_val_loss_index + 1  # 计算达到最小验证损失值的轮次
+min_val_loss_index = val_loss.index(min(val_loss))  
+loss_num_epoch = min_val_loss_index + 1 
 print("loss auc epoch:", loss_num_epoch)
 
 # extra CNN feature
@@ -279,7 +270,7 @@ for root, dirs, files in os.walk(save_model_path):
             cat_cdr3_model = Model(inputs=model.input, outputs=model.get_layer('cdr3_cat').output)
             cat_peptide_model = Model(inputs=model.input, outputs=model.get_layer('pep_cat').output)
 
-            # 使用所有输入来预测
+          
             train_inputs_full = [tcrB_train, pep_train]
             test_inputs_full = [tcrB_test, pep_test]
 
