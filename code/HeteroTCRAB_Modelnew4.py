@@ -1,11 +1,11 @@
 
-
-
+#
+#
+#
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import SAGEConv, HeteroConv, Linear, TransformerConv, FiLMConv, HGTConv
-
 
 
 class HeteroTCR(torch.nn.Module):
@@ -16,32 +16,31 @@ class HeteroTCR(torch.nn.Module):
 
     def forward(self, x_dict, edge_index_dict, edge_index_a, edge_index_b):
         z_dict = self.encoder(x_dict, edge_index_dict)
-        out_tra, out_trb= self.decoder(z_dict, edge_index_a, edge_index_b)
-        return out_tra, out_trb
+        out_tra, out_trb,out= self.decoder(z_dict, edge_index_a, edge_index_b)
+        return out_tra, out_trb,out
 
 
 class HeteroGNN(torch.nn.Module):
     def __init__(self, metadata, hidden_channels=1024, num_layers=3, net_type='SAGE'):
         super().__init__()
 
-        self.convs = torch.nn.ModuleList()  
+        self.convs = torch.nn.ModuleList()
         if net_type == 'SAGE': 
-            for _ in range(num_layers): 
-               
+            for _ in range(num_layers):
                 conv = HeteroConv({
                     ('cdr3b', 'binds_to', 'tra_peptide'): SAGEConv((-1, -1), hidden_channels),
                     ('cdr3b', 'binds_to', 'trb_peptide'): SAGEConv((-1, -1), hidden_channels),
-                   
+
                     ('tra_peptide', 'rev_binds_to', 'cdr3b'): SAGEConv((-1, -1), hidden_channels),
                     ('trb_peptide', 'rev_binds_to', 'cdr3b'): SAGEConv((-1, -1), hidden_channels),
                 })
-                self.convs.append(conv)  
+                self.convs.append(conv) 
         elif net_type == 'TF':
             for _ in range(num_layers):
                 conv = HeteroConv({
                     ('cdr3b', 'binds_to', 'tra_peptide'): TransformerConv(-1, hidden_channels),
                     ('cdr3b', 'binds_to', 'trb_peptide'): TransformerConv(-1, hidden_channels),
-                   
+
                     ('tra_peptide', 'rev_binds_to', 'cdr3b'): TransformerConv(-1, hidden_channels),
                     ('trb_peptide', 'rev_binds_to', 'cdr3b'): TransformerConv(-1, hidden_channels),
                 })
@@ -54,33 +53,18 @@ class HeteroGNN(torch.nn.Module):
                 })
                 self.convs.append(conv)
 
-      
 
-  
     def forward(self, x_dict, edge_index_dict):
-       
-        initial_x_dict = x_dict.copy()
-       
 
-        # for conv in self.convs:
-        for i, conv in enumerate(self.convs): 
-            # print(f"--- Processing Layer {i + 1} ---") 
+        initial_x_dict = x_dict.copy()
+
+        for i, conv in enumerate(self.convs):  
+
             for edge_type in edge_index_dict.keys():
                 src, _, dst = edge_type
-                # print(f"Processing edge from {src} to {dst}")
-                # print(f"Checking if {src} and {dst} exist in x_dict...")
-                # if src not in x_dict or dst not in x_dict:
-                #     print(f"Error: {src} or {dst} not found in x_dict!")
 
-           
             x_dict = conv(x_dict, edge_index_dict)
-            # print("x_dict after conv:", x_dict.keys())  
-
-            
             x_dict = {key: F.leaky_relu(x) for key, x in x_dict.items()}
-
-           
-
         return x_dict
 
 
@@ -94,9 +78,23 @@ class MLP(torch.nn.Module):
         self.lin2 = Linear(512, 256)
         self.bn2 = nn.BatchNorm1d(256)
         self.dropout2 = nn.Dropout(dropout_rate)
-        # Output layers modified to return additional weight per sample
+
+        self.lin11 = Linear(hidden_channels *4,2048)
+
+        self.bn11 = nn.BatchNorm1d(2048)
+        self.dropout1 = nn.Dropout(dropout_rate)
+
+        self.lin22 = Linear(2048, 1024)
+        self.bn22 = nn.BatchNorm1d(1024)
+        self.dropout2 = nn.Dropout(dropout_rate)
+
+        self.lin33 = Linear(1024, 256)
+        self.bn33 = nn.BatchNorm1d(256)
+        self.dropout3 = nn.Dropout(dropout_rate)
+
         self.lin3_tra = Linear(256, 1)  # Updated: output for prediction + weight
         self.lin3_trb = Linear(256, 1)  # Updated: output for prediction + weight
+        self.lin3_out = Linear(256, 1)  # Updated: output for prediction + weight
 
         # self.sigmoid = torch.nn.Sigmoid()
 
@@ -108,15 +106,14 @@ class MLP(torch.nn.Module):
         x_c = z_dict['cdr3b'][edge_index_b[0]]
         x_d = z_dict['trb_peptide'][edge_index_b[1]]
         x_trb = torch.cat([x_c, x_d], dim=1)
-
+        out = torch.cat([x_tra, x_trb], dim=1)
         x_tra = self.process_single_path(x_tra)
         x_trb = self.process_single_path(x_trb)
-
+        out = self.process_single_path2(out)
         out_tra = self.lin3_tra(x_tra)
         out_trb = self.lin3_trb(x_trb)
-
-       
-        return out_tra, out_trb
+        out= self.lin3_out(out)
+        return out_tra, out_trb,out
 
     def process_single_path(self, x):
         x = self.lin1(x)
@@ -131,3 +128,19 @@ class MLP(torch.nn.Module):
 
         return x
 
+    def process_single_path2(self, x):
+        x = self.lin11(x)
+        x = self.bn11(x)
+        x = F.relu(x)
+        x = self.dropout1(x)
+
+        x = self.lin22(x)
+        x = self.bn22(x)
+        x = self.dropout2(x)
+        x = F.relu(x)
+
+        x = self.lin33(x)
+        x = self.bn33(x)
+        x = self.dropout3(x)
+        x = F.relu(x)
+        return x
