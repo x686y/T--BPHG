@@ -1,34 +1,4 @@
 
-
-# import torch
-# import torch.nn.functional as F
-# import torchmetrics
-# import pandas as pd
-# import sys, os
-# import os
-# os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-# # os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-# # from HeteroTCRAB_Model import *
-# from HeteroTCRAB_Model import *
-# from data_processtcrAB import *
-# from config import *
-#
-# # config
-# NUM_EPOCHS = int(args.epochs)
-# cuda_name = 'cuda:' + args.cuda
-# lr = float(args.gnnlearningrate)
-# wd = float(args.weightdecay)
-# hc = int(args.hiddenchannels)
-# nl = int(args.numberlayers)
-# nt = args.gnnnet
-# dropout = float(args.dropout)
-# root_model = args.modeldir
-# model_dir = str(args.secdir) + '_' + str(args.terdir) + '_HeteroAB'
-# model_dir2 = str(args.secdir) + '_' + str(args.terdir)
-# save_model_path = os.path.join(root_model, model_dir)
-# root_history = args.hisdir
-# device = torch.device(cuda_name if torch.cuda.is_available() else 'cpu')
-
 import torch
 import torch.nn.functional as F
 import torchmetrics
@@ -40,10 +10,6 @@ from HeteroTCRAB_Modelnew4 import *
 from dataprogressNettcrfull import *
 # from Base_dataprogressNettcrfull import *
 from config import *
-
-# os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-#
-# os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 # config
 NUM_EPOCHS = int(args.epochs)
@@ -66,21 +32,11 @@ root_history = args.hisdir
 
 device = torch.device(cuda_name if torch.cuda.is_available() else 'cpu')
 data_train, data_test,train_edge_index_a,train_edge_index_b, test_edge_index_a, test_edge_index_b, y_train, y_test = create_dataset_global()
-# print(f"y_train shape: {y_train.shape}")
-# print(data_train)
-# print(data_test)
-# print(train_edge_index.size())
-
-#print(len(train_cdr3b)) 
-# print('train_edge_index_a',train_edge_index_a.shape)
-# print('12345')
-# Initialize metrics using class interface with multiclass set to True
-
 def specificity(y_pred, y_true):
-    y_pred = y_pred.round() 
+    y_pred = y_pred.round()  # 转为0/1
     tn = ((y_pred == 0) & (y_true == 0)).sum().float()  
-    fp = ((y_pred == 1) & (y_true == 0)).sum().float() 
-    return tn / (tn + fp + 1e-8) 
+    fp = ((y_pred == 1) & (y_true == 0)).sum().float()  
+    return tn / (tn + fp + 1e-8)  
 train_f1 = torchmetrics.F1(num_classes=2, average='macro', multiclass=True).to(device)
 train_precision_metric = torchmetrics.Precision(num_classes=2, average='macro', multiclass=True).to(device)
 train_recall_metric = torchmetrics.Recall(num_classes=2, average='macro', multiclass=True).to(device)
@@ -90,46 +46,37 @@ test_precision_metric = torchmetrics.Precision(num_classes=2, average='macro', m
 test_recall_metric = torchmetrics.Recall(num_classes=2, average='macro', multiclass=True).to(device)
 
 def train(model):
-  
-    # print('Training on {} samples for tra_peptide...'.format(len(data_train['cdr3b', 'binds_to', 'tra_peptide'].edge_index[0])))
-    # print('Training on {} samples for trb_peptide...'.format(len(data_train['cdr3b', 'binds_to', 'trb_peptide'].edge_index[0])))
-
 
     loss_fn = torch.nn.BCELoss()
-  
 
     model.train()
     optimizer.zero_grad()
-    outa, outb  = model(data_train.x_dict, data_train.edge_index_dict, train_edge_index_a, train_edge_index_b)
+    outa, outb,out  = model(data_train.x_dict, data_train.edge_index_dict, train_edge_index_a, train_edge_index_b)
+
 
     out_tra_b = torch.stack([outa, outb], dim=-1)
-    # print(f"out_tra_b shape: {out_tra_b.shape}")
+
     softmax_out_tra_b = torch.softmax(out_tra_b, dim=-1)
-    # print(f"softmax_out_tra_b shape: {softmax_out_tra_b.shape}")
-    # Extract the weights
+
     weight_tra = softmax_out_tra_b[..., 0]  
-   
-    # print(f"weight_tra shape: {weight_tra.shape}")
+
     weight_trb = softmax_out_tra_b[..., 1]  
-    out=(outa+outb)/2
-  
 
     out = out.squeeze(-1)
-    # print(f"outshape: {out.shape}")
 
 
 
-   
+
+
     out = torch.sigmoid(out)
     train_loss = loss_fn(out, torch.tensor(y_train).float().to(device))
-  
 
     train_loss.backward()
-    optimizer.step()
+    optimizer.step() 
 
     train_binary_accuracy = torchmetrics.functional.accuracy(out, torch.tensor(y_train).int().to(device))
     train_ROCAUC = torchmetrics.functional.auroc(out, torch.tensor(y_train).int().to(device))
-    # Update metrics using class interface
+
     train_precision = train_precision_metric(out, torch.tensor(y_train).int().to(device))
     train_recall = train_recall_metric(out, torch.tensor(y_train).int().to(device))
     train_f1_score = train_f1(out, torch.tensor(y_train).int().to(device))
@@ -137,22 +84,19 @@ def train(model):
 
     model.eval()
     with torch.no_grad():
-        outa_test, outb_test= model(data_test.x_dict, data_test.edge_index_dict, test_edge_index_a, test_edge_index_b)
+
+        outa_test, outb_test,out_test = model(data_test.x_dict, data_test.edge_index_dict, test_edge_index_a, test_edge_index_b)
 
         out_test_tra_b = torch.stack([outa_test, outb_test], dim=-1)
-        softmax_out_test_tra_b  = torch.softmax(out_test_tra_b, dim=-1)  
-
-       
+        softmax_out_test_tra_b  = torch.softmax(out_test_tra_b, dim=-1) 
         test_weight_tra = softmax_out_test_tra_b[..., 0]
         test_weight_trb = softmax_out_test_tra_b[..., 1]
 
-        out_test = (outa_test + outb_test) / 2 
-       
         out_test =  out_test .squeeze(-1)
-        
+
         out_test = torch.sigmoid(out_test)
         test_loss = loss_fn(out_test, torch.tensor(y_test).float().to(device))
-        # test_loss = weighted_binary_crossentropy_test(torch.tensor(y_test).to(device), out_test)
+
 
         test_binary_accuracy = torchmetrics.functional.accuracy(out_test, torch.tensor(y_test).int().to(device))
         test_ROCAUC = torchmetrics.functional.auroc(out_test, torch.tensor(y_test).int().to(device))
@@ -170,15 +114,23 @@ def train(model):
             test_f1_score, test_specificity)
 
 if __name__ == "__main__":
-    model = HeteroTCR(data_train.metadata(), hc, nl, nt, dropout)
+
+    model = HeteroTCR(
+        metadata=data_train.metadata(),
+        hidden_channels=hc,
+        num_layers=nl,
+        net_type=nt, 
+        dropout_rate=dropout
+
+    )
+
     model = model.to(device)
     data_train = data_train.to(device)
     data_test = data_test.to(device)
 
     with torch.no_grad():  # Initialize lazy modules.
-        outa, outb= model(data_train.x_dict, data_train.edge_index_dict, train_edge_index_a, train_edge_index_b)
-    # optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
-  
+        outa, outb,out= model(data_train.x_dict, data_train.edge_index_dict, train_edge_index_a, train_edge_index_b)
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0)
 
     epoch = []
@@ -243,7 +195,6 @@ if __name__ == "__main__":
                  'val_loss': val_loss, 'val_acc': val_acc, 'val_auc_roc': val_auc_roc,
                  'val_precision': val_precision_list, 'val_recall': val_recall_list,
                  'val_f1_score': val_f1_score_list, 'val_specificity': val_specificity_list}  # Update the column name
-   
 
     df = pd.DataFrame(dfhistory)
     if not os.path.exists(root_history):
