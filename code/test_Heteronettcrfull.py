@@ -40,18 +40,13 @@ def predictAB(model):
 
     model.eval()
     with torch.no_grad():
-        outa_test, outb_test= model(data_test.x_dict, data_test.edge_index_dict,
-                                                           test_edge_index_a, test_edge_index_b)
-        
+        outa_test, outb_test,out_test = model(data_test.x_dict, data_test.edge_index_dict, test_edge_index_a, test_edge_index_b)
+
         out_test_tra_b = torch.stack([outa_test, outb_test], dim=-1)
-        softmax_out_test_tra_b  = torch.softmax(out_test_tra_b, dim=-1)  
+        softmax_out_test_tra_b  = torch.softmax(out_test_tra_b, dim=-1) 
         test_weight_tra = softmax_out_test_tra_b[..., 0]
         test_weight_trb = softmax_out_test_tra_b[..., 1]
-       
-        print(f"Shape of test_weight_tra: {test_weight_tra.shape}")
-        print(f"Shape of test_weight_trb: {test_weight_trb.shape}")
-        out_test = (outa_test + outb_test) / 2  
-        out_test =  out_test .squeeze(-1)
+
       
         out_test = torch.sigmoid(out_test)
         test_loss = loss_fn(out_test, torch.tensor(y_test).float().to(device))
@@ -69,7 +64,7 @@ if __name__ == "__main__":
     data_test = data_test.to(device)
 
     with torch.no_grad():  # Initialize lazy modules.
-        out_tra, out_trb= model(data_test.x_dict, data_test.edge_index_dict, test_edge_index_a, test_edge_index_b)
+        out_tra, out_trb,out= model(data_test.x_dict, data_test.edge_index_dict, test_edge_index_a, test_edge_index_b)
 
     model_dir = args.testmodeldir
     val_model_path = os.path.join(root_model, model_dir)
@@ -115,3 +110,4 @@ if __name__ == "__main__":
 
                 # df.to_csv(os.path.join(root2, "AddGeneChageGrap_pred_fold1.tsv"), header=True, sep='\t', index=False)
                 # df.to_csv(os.path.join(root2, "nopretrain_pred_fold4.tsv"), header=True, sep='\t', index=False)
+
