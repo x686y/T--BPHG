@@ -17,17 +17,12 @@ scikit-learn==1.0.2
 # Code
 The source code for feature extraction, model construction and training, as well as prediction, is stored in the 'code' folder.
 HeteroTCRAB_Modelnew4.py: Defines the baseline model for ablation experiments.  
-Base_dataprogressNettcrfull.py: Generates graph-structured data for the baseline model in ablation experiments across different datasets.  
-Basecnn_AB.py: Pre-training script for the baseline model in ablation experiments.  
-run_heteronetcrfull.py: Execution script for the heterogeneous graph model of the baseline model in ablation experiments.  
-test_HeteroBaseline.py: Generates prediction result files for the baseline model in ablation experiments.  
 CNNnetfullAB.py: Runs the pre-training module of Tαβ-HGHP.  
-HeteroTCRAB_Modelnew4.py: Defines the heterogeneous graph model of Tαβ-HGHP.  
 run_heteronetcrfull.py: Executes the heterogeneous graph module of Tαβ-HGHP.  
 dataprogressNettcrfull.py: Generates graph-structured data for Tαβ-HGHP.  
 test_Heteronettcrfull.py: Prediction result files for Tαβ-HGHP across different datasets.  
 config.py: Configuration file for the Tαβ-HGHP model.
 # Data
-nettcr_bal5folds: This folder contains the 5-fold balanced dataset and prediction result files.  
+
 nettcrfull5folds: This folder contains the 5-fold visible epitope dataset and prediction result files.  
 nettcr_strict0/1/2/3/4/_5folds: These five folders contain the 5-fold unseen epitope datasets and corresponding prediction result files, divided under five different seeds.
