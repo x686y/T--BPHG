@@ -9,7 +9,7 @@ parser = ArgumentParser(description="Specifying Input Parameters")
 parser.add_argument("-pd", "--pridir", default="../data", help="Primary directory of data")
 
 # parser.add_argument("-sd", "--secdir", default="nettcrfull5folds", help="Secondary directory of data")
-parser.add_argument("-sd", "--secdir", default="nettcr_bal5folds", help="Secondary directory of data")
+
 # parser.add_argument("-sd", "--secdir", default="nettcr_strict0_5folds", help="Secondary directory of data")
 
 parser.add_argument("-td", "--terdir", default="fold0", help="Tertiary directory of data")
@@ -38,9 +38,7 @@ parser.add_argument("-hd", "--hisdir", default="../History", help="Primary direc
 # parser.add_argument("-tmd", "--testmodeldir", default="publicTCRs2_5folds_fold3_HeteroAB_New2", help="Secondary directory of test model directory")
 
 # parser.add_argument("-tmd", "--testmodeldir", default="nettcrfull5folds_fold0_GuoAndXiacaiyang_HeteroAB", help="Secondary directory of test model directory")
-# parser.add_argument("-tmd", "--testmodeldir", default="nettcr_bal5folds_fold0_GuoAndXiacaiyang_HeteroAB", help="Secondary directory of test model directory")
-parser.add_argument("-tmd", "--testmodeldir", default="nettcr_bal5folds_fold0_GuoAndXiacaiyang_CNNAB", help="Secondary directory of test model directory")
-# parser.add_argument("-tmd", "--testmodeldir", default="nettcr_bal5folds_fold2_SingleGraph", help="Secondary directory of test model directory")
+
 # parser.add_argument("-tmd", "--testmodeldir", default="nettcr_strict0_5folds_fold0_SingleGraph", help="Secondary directory of test model directory")
 # parser.add_argument("-tmd", "--testmodeldir", default="nettcr_strict0_5folds_fold0_GuoAndXiacaiyang_HeteroAB", help="Secondary directory of test model directory")
 # parser.add_argument("-tmd", "--testmodeldir", default="nettcr_strict0_5folds_fold0_GuoAndXiacaiyang_CNNAB", help="Secondary directory of test model directory")
