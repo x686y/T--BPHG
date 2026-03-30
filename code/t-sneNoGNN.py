@@ -324,7 +324,6 @@ for i in range(len(test_peptide)):
         dict_tmp[test_peptide[i]] = 1
         key_pep.append(test_peptide[i])
 
-output_dir = r"D:\xy\HeteroTCR-main\5folds_visual\picture\t-seneNoGNN_Netbalfold0"
 # output_dir = r"D:\xy\HeteroTCR-main\5folds_visual\picture\t-seneNoGNN_Netfulfold0"
 
 if not os.path.exists(output_dir):
