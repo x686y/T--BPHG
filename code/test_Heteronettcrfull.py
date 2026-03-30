@@ -104,10 +104,8 @@ if __name__ == "__main__":
 
                 })
                 # df.to_csv(os.path.join(root2, "nettcrfullHetero_pred_fold4.tsv"), header=True, sep='\t', index=False)
-                # df.to_csv(os.path.join(root2, "IMMREPHetero_pred_fold0.tsv"), header=True, sep='\t', index=False)
-                df.to_csv(os.path.join(root2, "nettcrbalHetero_pred_fold4.tsv"), header=True, sep='\t', index=False)
+
                 # df.to_csv(os.path.join(root2, "nettcr_strict4Hetero_pred_fold4.tsv"), header=True, sep='\t', index=False)
 
-                # df.to_csv(os.path.join(root2, "AddGeneChageGrap_pred_fold1.tsv"), header=True, sep='\t', index=False)
                 # df.to_csv(os.path.join(root2, "nopretrain_pred_fold4.tsv"), header=True, sep='\t', index=False)
 
